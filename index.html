@@ -1,2 +1,854 @@
 # MZ-SHAPE-AI
 Treino com tecnologia e eficiência IA
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0b0c">
+<title>MZ Treino Inteligente 2.0</title>
+
+<style>
+:root {
+  --gold:#d4af37;
+  --bg:#0b0b0c;
+  --card:#181818;
+  --text:#f5f5f5;
+  --muted:#aaa;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Arial,sans-serif;
+}
+header{
+  padding:25px 15px;text-align:center;
+  border-bottom:1px solid var(--gold);
+}
+header h1{color:var(--gold);margin:0;letter-spacing:2px}
+header p{color:var(--muted);font-size:13px}
+nav{
+  display:flex;overflow-x:auto;gap:7px;padding:12px;background:#111;
+}
+button{
+  background:var(--gold);color:#111;border:0;border-radius:7px;
+  padding:11px 13px;font-weight:bold;cursor:pointer;
+}
+nav button{white-space:nowrap;background:#292929;color:white}
+nav button.active{background:var(--gold);color:#111}
+main{padding:15px;max-width:850px;margin:auto}
+.card{
+  background:var(--card);padding:16px;border-radius:12px;
+  margin-bottom:15px;border:1px solid #303030;
+}
+h2,h3{color:var(--gold)}
+label{display:block;color:#ddd;margin:12px 0 5px}
+input,select,textarea{
+  width:100%;padding:12px;border-radius:7px;
+  border:1px solid #444;background:#222;color:white;font-size:15px;
+}
+.exercise{
+  background:#242424;padding:13px;border-radius:9px;margin:10px 0;
+}
+.exercise strong{color:var(--gold)}
+.exercise small{color:#bbb}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.row button{flex:1}
+.secondary{background:#444;color:white}
+.danger{background:#8b2525;color:white}
+.hidden{display:none!important}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat div{background:#222;padding:16px;border-radius:9px}
+.stat strong{color:var(--gold);font-size:22px}
+footer{text-align:center;padding:25px;color:#777;font-size:12px}
+.preview{
+  width:100%;max-height:400px;object-fit:contain;
+  border-radius:10px;margin-top:15px;background:#111;
+}
+.result{
+  padding:15px;background:#202020;border-radius:10px;
+  border-left:3px solid var(--gold);margin-top:15px;
+  line-height:1.7;
+}
+.gold{color:var(--gold)}
+</style>
+
+<link rel="manifest" href="./manifest.json">
+</head>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js");
+}
+</script>
+
+<body>
+
+<div id="mz-entrada" style="position:fixed;inset:0;background:#000;z-index:99999;text-align:center">
+<img src="./assets/MZ_treino inteligente_300x250.png"
+style="width:100%;height:85%;object-fit:contain">
+<button onclick="document.getElementById('mz-entrada').remove()"
+style="width:90%;padding:15px">ENTRAR</button>
+</div>
+
+<header>
+<h1>MZ TREINO INTELIGENTE</h1>
+<p>DISCIPLINA • EVOLUÇÃO • RESULTADOS</p>
+<strong style="color:var(--gold)">VERSÃO 2.0</strong>
+</header>
+
+<nav>
+<button class="active" onclick="showTab('inicio',this)">Início</button>
+<button onclick="showTab('treinos',this)">Treinos</button>
+<button onclick="showTab('historico',this)">Histórico</button>
+<button onclick="showTab('evolucao',this)">Evolução</button>
+<button onclick="showTab('fotos',this)">Fotos</button>
+<button onclick="showTab('ia',this)">IA CORPO</button>
+<button onclick="showTab('backup',this)">Backup</button>
+</nav>
+
+<main>
+
+<section id="inicio">
+<div class="card">
+<h2>Bem-vindo ao MZ!</h2>
+<p>Seu espaço pessoal de acompanhamento e evolução muscular.</p>
+<div class="stat">
+<div><small>Treinos registrados</small><br>
+<strong id="totalTreinos">0</strong></div>
+<div><small>Último peso</small><br>
+<strong id="pesoAtual">--</strong></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Seu objetivo</h3>
+<p>Construir massa muscular, melhorar o condicionamento
+e acompanhar a redução de gordura corporal.</p>
+</div>
+
+<div class="card">
+<h3>Frase MZ</h3>
+<p style="color:var(--gold)">AÇO NA ALMA. DISCIPLINA NO TREINO.</p>
+</div>
+</section>
+
+<section id="treinos" class="hidden">
+<div class="card">
+<h2>Minha programação</h2>
+<label>Selecione o dia</label>
+<select id="dia" onchange="renderTreino()">
+<option>Segunda-feira</option>
+<option>Terça-feira</option>
+<option>Quarta-feira</option>
+<option>Quinta-feira</option>
+<option>Sexta-feira</option>
+<option>Sábado</option>
+<option>Domingo</option>
+</select>
+<div id="listaExercicios"></div>
+<div class="row">
+<button onclick="novoExercicio()">+ Adicionar exercício</button>
+<button onclick="registrarTreino()">Finalizar treino</button>
+</div>
+</div>
+
+<div class="card">
+<h3>Adicionar ou editar exercício</h3>
+<input type="hidden" id="editId">
+<label>Nome do exercício</label>
+<input id="nome" placeholder="Ex: Supino reto">
+<label>Séries</label>
+<input id="series" type="number" min="1" value="3">
+<label>Repetições</label>
+<input id="reps" placeholder="Ex: 10 a 12">
+<label>Carga (kg)</label>
+<input id="carga" type="number" step="0.5">
+<label>Observações</label>
+<input id="obs" placeholder="Observações">
+<button style="width:100%;margin-top:15px"
+onclick="salvarExercicio()">Salvar exercício</button>
+</div>
+</section>
+
+<section id="historico" class="hidden">
+<div class="card">
+<h2>Histórico de treinos</h2>
+<div id="listaHistorico"></div>
+</div>
+</section>
+
+<section id="evolucao" class="hidden">
+<div class="card">
+<h2>Acompanhamento corporal</h2>
+<label>Data</label>
+<input type="date" id="dataMedida">
+<label>Peso corporal (kg)</label>
+<input type="number" id="peso" step="0.1">
+<label>Cintura (cm)</label>
+<input type="number" id="cintura" step="0.1">
+<button style="width:100%;margin-top:15px"
+onclick="salvarMedida()">Registrar medidas</button>
+</div>
+<div class="card">
+<h3>Minha evolução</h3>
+<div id="listaMedidas"></div>
+</div>
+</section>
+
+<section id="fotos" class="hidden">
+<div class="card">
+<h2>Fotos de evolução</h2>
+<p>Registre suas mudanças físicas ao longo do tempo.</p>
+<label>Selecionar fotografia</label>
+<input type="file" id="fotoArquivo" accept="image/*">
+<button style="width:100%;margin-top:15px"
+onclick="salvarFoto()">Salvar fotografia</button>
+<div id="galeria" style="margin-top:20px"></div>
+</div>
+</section>
+
+<!-- NOVO MÓDULO MZ AI BODY -->
+
+<section id="ia" class="hidden">
+
+<div class="card">
+<h2>MZ AI BODY SCANNER</h2>
+<p>Seu assistente inteligente para objetivos corporais,
+treino e alimentação.</p>
+
+<label>Foto de frente</label>
+<input type="file" id="fotoIA" accept="image/*"
+onchange="previewFotoIA(this,'previewIA')">
+
+<img id="previewIA" class="preview hidden">
+
+<label>Foto lateral (opcional)</label>
+<input type="file" id="fotoLateral" accept="image/*"
+onchange="previewFotoIA(this,'previewLateral')">
+
+<img id="previewLateral" class="preview hidden">
+
+<label>Idade</label>
+<input type="number" id="idadeIA" placeholder="Sua idade">
+
+<label>Sexo (para estimativa energética)</label>
+<select id="sexoIA">
+<option value="masculino">Masculino</option>
+<option value="feminino">Feminino</option>
+</select>
+
+<label>Altura (cm)</label>
+<input type="number" id="alturaIA" placeholder="Ex: 170">
+
+<label>Peso atual (kg)</label>
+<input type="number" id="pesoIA" step="0.1" placeholder="Ex: 80">
+
+<label>Cintura (cm) (opcional)</label>
+<input type="number" id="cinturaIA" step="0.1">
+
+<label>Nível de atividade</label>
+<select id="atividadeIA">
+<option value="1.2">Sedentário</option>
+<option value="1.375">Levemente ativo</option>
+<option value="1.55">Moderadamente ativo</option>
+<option value="1.725">Muito ativo</option>
+<option value="1.9">Extremamente ativo</option>
+</select>
+
+<label>Objetivo principal</label>
+<select id="objetivoIA">
+<option value="recomposicao">Recomposição corporal</option>
+<option value="ganho">Ganhar massa muscular</option>
+<option value="perda">Reduzir gordura corporal</option>
+<option value="condicionamento">Condicionamento físico</option>
+</select>
+
+<label>Experiência de treino</label>
+<select id="experienciaIA">
+<option value="iniciante">Iniciante</option>
+<option value="intermediario">Intermediário</option>
+<option value="avancado">Avançado</option>
+</select>
+
+<label>Regiões que deseja priorizar</label>
+<input id="prioridadeIA"
+placeholder="Ex: Peito, ombros, costas">
+
+<button style="width:100%;margin-top:20px"
+onclick="analisarCorpo()">GERAR MEU PLANO</button>
+
+</div>
+
+<div class="card hidden" id="resultadoIA">
+<h2>Seu plano MZ</h2>
+<div id="conteudoIA"></div>
+<button style="width:100%;margin-top:15px"
+onclick="salvarAnalise()">Salvar análise</button>
+</div>
+
+<div class="card">
+<h3>Histórico de análises</h3>
+<div id="historicoIA"></div>
+</div>
+
+</section>
+
+<section id="backup" class="hidden">
+<div class="card">
+<h2>Segurança dos dados</h2>
+<p>Faça cópias dos seus registros.</p>
+<button style="width:100%" onclick="exportarDados()">Baixar backup</button>
+<label>Restaurar backup JSON</label>
+<input type="file" id="arquivoBackup" accept=".json">
+<button style="width:100%;margin-top:12px"
+onclick="importarDados()">Restaurar dados</button>
+<p style="color:#aaa;font-size:12px">
+Os dados são armazenados neste navegador. Faça backups regularmente.
+</p>
+</div>
+</section>
+
+</main>
+
+<footer>
+MZ TREINO INTELIGENTE 2.0<br>
+A evolução começa com disciplina.
+</footer>
+
+<script>
+
+const chave="MZ_TREINO_INTELIGENTE_2";
+
+const dias=[
+"Segunda-feira","Terça-feira","Quarta-feira",
+"Quinta-feira","Sexta-feira","Sábado","Domingo"
+];
+
+let dados=JSON.parse(localStorage.getItem(chave))||{
+treinos:{},historico:[],medidas:[],fotos:[],analises:[]
+};
+
+if(!dados.analises)dados.analises=[];
+if(!dados.fotos)dados.fotos=[];
+if(!dados.medidas)dados.medidas=[];
+if(!dados.historico)dados.historico=[];
+if(!dados.treinos)dados.treinos={};
+
+dias.forEach(d=>{
+if(!dados.treinos[d])dados.treinos[d]=[];
+});
+
+function salvar(){
+localStorage.setItem(chave,JSON.stringify(dados));
+atualizarInicio();
+}
+
+function showTab(id,botao){
+document.querySelectorAll("main section")
+.forEach(s=>s.classList.add("hidden"));
+
+document.getElementById(id).classList.remove("hidden");
+
+document.querySelectorAll("nav button")
+.forEach(b=>b.classList.remove("active"));
+
+botao.classList.add("active");
+
+if(id==="treinos")renderTreino();
+if(id==="historico")renderHistorico();
+if(id==="evolucao")renderMedidas();
+if(id==="fotos")renderFotos();
+if(id==="ia")renderHistoricoIA();
+}
+
+function renderTreino(){
+let dia=document.getElementById("dia").value;
+let lista=dados.treinos[dia]||[];
+let html="";
+
+lista.forEach((e,i)=>{
+html+=`
+<div class="exercise">
+<strong>${e.nome}</strong><br>
+<small>${e.series} séries • ${e.reps} repetições • ${e.carga||0} kg</small>
+${e.obs?`<p>${e.obs}</p>`:""}
+<div class="row">
+<button onclick="editarExercicio(${i})">Editar</button>
+<button class="danger" onclick="excluirExercicio(${i})">Excluir</button>
+</div>
+</div>`;
+});
+
+document.getElementById("listaExercicios").innerHTML=
+html||"<p>Nenhum exercício cadastrado neste dia.</p>";
+}
+
+function novoExercicio(){
+limparFormulario();
+document.getElementById("nome").focus();
+}
+
+function limparFormulario(){
+["editId","nome","reps","carga","obs"].forEach(id=>{
+document.getElementById(id).value="";
+});
+document.getElementById("series").value=3;
+}
+
+function salvarExercicio(){
+let dia=document.getElementById("dia").value;
+let nome=document.getElementById("nome").value.trim();
+let series=document.getElementById("series").value;
+let reps=document.getElementById("reps").value.trim();
+let carga=document.getElementById("carga").value;
+let obs=document.getElementById("obs").value.trim();
+let id=document.getElementById("editId").value;
+
+if(!nome){alert("Digite o nome do exercício.");return;}
+
+let exercicio={nome,series,reps,carga,obs};
+
+if(id===""){
+dados.treinos[dia].push(exercicio);
+}else{
+dados.treinos[dia][Number(id)]=exercicio;
+}
+
+salvar();
+limparFormulario();
+renderTreino();
+alert("Exercício salvo!");
+}
+
+function editarExercicio(i){
+let e=dados.treinos[document.getElementById("dia").value][i];
+document.getElementById("editId").value=i;
+document.getElementById("nome").value=e.nome;
+document.getElementById("series").value=e.series;
+document.getElementById("reps").value=e.reps;
+document.getElementById("carga").value=e.carga;
+document.getElementById("obs").value=e.obs;
+window.scrollTo(0,document.body.scrollHeight);
+}
+
+function excluirExercicio(i){
+if(!confirm("Excluir este exercício?"))return;
+let dia=document.getElementById("dia").value;
+dados.treinos[dia].splice(i,1);
+salvar();
+renderTreino();
+}
+
+function registrarTreino(){
+let dia=document.getElementById("dia").value;
+if(!dados.treinos[dia].length){
+alert("Adicione exercícios antes de finalizar.");
+return;
+}
+
+dados.historico.unshift({
+dia,data:new Date().toLocaleDateString("pt-BR"),
+exercicios:JSON.parse(JSON.stringify(dados.treinos[dia]))
+});
+
+salvar();
+alert("Treino registrado com sucesso!");
+}
+
+function renderHistorico(){
+let html="";
+dados.historico.forEach((h,i)=>{
+html+=`
+<div class="exercise">
+<strong>${h.dia}</strong><br>
+<small>${h.data}</small>
+<p>${h.exercicios.map(e=>e.nome).join(", ")}</p>
+<button class="danger" onclick="excluirHistorico(${i})">Excluir registro</button>
+</div>`;
+});
+document.getElementById("listaHistorico").innerHTML=
+html||"<p>Nenhum treino registrado.</p>";
+}
+
+function excluirHistorico(i){
+if(!confirm("Excluir este registro?"))return;
+dados.historico.splice(i,1);
+salvar();
+renderHistorico();
+}
+
+function salvarMedida(){
+let peso=document.getElementById("peso").value;
+let cintura=document.getElementById("cintura").value;
+let data=document.getElementById("dataMedida").value;
+
+if(!peso&&!cintura){alert("Informe pelo menos uma medida.");return;}
+
+dados.medidas.unshift({
+peso,cintura,data:data||new Date().toISOString().slice(0,10)
+});
+
+salvar();
+renderMedidas();
+alert("Medidas registradas!");
+}
+
+function renderMedidas(){
+let html="";
+dados.medidas.forEach((m,i)=>{
+html+=`
+<div class="exercise">
+<strong>${m.data}</strong><br>
+Peso: ${m.peso||"--"} kg<br>
+Cintura: ${m.cintura||"--"} cm
+<button class="danger" onclick="excluirMedida(${i})">Excluir</button>
+</div>`;
+});
+document.getElementById("listaMedidas").innerHTML=
+html||"<p>Nenhuma medida registrada.</p>";
+}
+
+function excluirMedida(i){
+if(!confirm("Excluir medida?"))return;
+dados.medidas.splice(i,1);
+salvar();
+renderMedidas();
+}
+
+function abrirBanco(){
+return new Promise((resolve,reject)=>{
+let req=indexedDB.open("MZ_FOTOS",1);
+req.onupgradeneeded=()=>{
+req.result.createObjectStore("fotos",{keyPath:"id",autoIncrement:true});
+};
+req.onsuccess=()=>resolve(req.result);
+req.onerror=()=>reject(req.error);
+});
+}
+
+async function salvarFoto(){
+let arquivo=document.getElementById("fotoArquivo").files[0];
+if(!arquivo){alert("Selecione uma foto.");return;}
+
+try{
+let banco=await abrirBanco();
+let tx=banco.transaction("fotos","readwrite");
+tx.objectStore("fotos").add({
+imagem:arquivo,data:new Date().toLocaleDateString("pt-BR")
+});
+tx.oncomplete=()=>{
+alert("Foto salva!");
+renderFotos();
+};
+}catch(e){
+alert("Não foi possível salvar a foto.");
+}
+}
+
+async function renderFotos(){
+let banco=await abrirBanco();
+let tx=banco.transaction("fotos","readonly");
+let req=tx.objectStore("fotos").getAll();
+
+req.onsuccess=()=>{
+let html="";
+req.result.forEach(f=>{
+let url=URL.createObjectURL(f.imagem);
+html+=`
+<div class="exercise">
+<img src="${url}" style="width:100%;border-radius:8px">
+<p>${f.data}</p>
+<button class="danger" onclick="excluirFoto(${f.id})">Excluir foto</button>
+</div>`;
+});
+document.getElementById("galeria").innerHTML=
+html||"<p>Nenhuma foto salva.</p>";
+};
+}
+
+async function excluirFoto(id){
+if(!confirm("Excluir fotografia?"))return;
+let banco=await abrirBanco();
+let tx=banco.transaction("fotos","readwrite");
+tx.objectStore("fotos").delete(id);
+tx.oncomplete=renderFotos;
+}
+
+/* MZ AI BODY */
+
+function previewFotoIA(input,id){
+let arquivo=input.files[0];
+if(!arquivo)return;
+
+if(!arquivo.type.startsWith("image/")){
+alert("Selecione uma imagem válida.");
+input.value="";
+return;
+}
+
+let img=document.getElementById(id);
+img.src=URL.createObjectURL(arquivo);
+img.classList.remove("hidden");
+}
+
+function analisarCorpo(){
+
+let idade=Number(document.getElementById("idadeIA").value);
+let altura=Number(document.getElementById("alturaIA").value);
+let peso=Number(document.getElementById("pesoIA").value);
+let sexo=document.getElementById("sexoIA").value;
+let atividade=Number(document.getElementById("atividadeIA").value);
+let cintura=Number(document.getElementById("cinturaIA").value);
+let objetivo=document.getElementById("objetivoIA").value;
+let experiencia=document.getElementById("experienciaIA").value;
+let prioridade=document.getElementById("prioridadeIA").value;
+
+if(!idade||!altura||!peso){
+alert("Preencha idade, altura e peso.");
+return;
+}
+
+if(idade<14||altura<100||peso<30){
+alert("Verifique os dados informados.");
+return;
+}
+
+let h=altura/100;
+let imc=peso/(h*h);
+
+let tmb=10*peso+6.25*altura-5*idade+
+(sexo==="masculino"?5:-161);
+
+let gasto=tmb*atividade;
+
+let calorias=gasto;
+let titulo="";
+let recomendacao="";
+let dieta="";
+
+if(objetivo==="ganho"){
+calorias=gasto+250;
+titulo="GANHO DE MASSA MUSCULAR";
+recomendacao="Priorize sobrecarga progressiva, recuperação e "
++"exercícios compostos. Mantenha consistência e acompanhe "
++"peso e medidas.";
+dieta="Pequeno superávit calórico, proteína adequada e "
++"carboidratos para sustentar o treino.";
+}
+
+if(objetivo==="perda"){
+calorias=gasto-300;
+titulo="REDUÇÃO DE GORDURA";
+recomendacao="Priorize musculação, atividade cardiovascular "
++"e um déficit calórico moderado, evitando perda excessiva "
++"de peso ou força.";
+dieta="Déficit moderado, proteínas adequadas, vegetais, "
++"fibras e alimentos que favoreçam saciedade.";
+}
+
+if(objetivo==="recomposicao"){
+titulo="RECOMPOSIÇÃO CORPORAL";
+recomendacao="Combine musculação progressiva, controle "
++"alimentar, sono e acompanhamento de cintura e peso. "
++"Busque preservar ou aumentar massa muscular.";
+dieta="Comece próximo da manutenção energética, "
++"com proteínas adequadas e ajuste conforme evolução.";
+}
+
+if(objetivo==="condicionamento"){
+titulo="CONDICIONAMENTO FÍSICO";
+recomendacao="Combine musculação, caminhadas, cardio "
++"progressivo e recuperação. Ajuste a intensidade "
++"conforme sua capacidade.";
+dieta="Alimentação equilibrada e energia suficiente "
++"para suportar os exercícios.";
+}
+
+let proteina=Math.round(peso*1.8);
+let gordura=Math.round(peso*0.8);
+let carbo=Math.round((calorias-proteina*4-gordura*9)/4);
+
+if(carbo<0)carbo=0;
+
+let treino="";
+
+if(experiencia==="iniciante"){
+treino="3 dias de musculação por semana, exercícios "
++"básicos, 2 a 3 séries por exercício e progressão gradual.";
+}
+if(experiencia==="intermediario"){
+treino="4 dias de musculação por semana, divisão "
++"por grupos musculares, 3 a 4 séries e progressão.";
+}
+if(experiencia==="avancado"){
+treino="4 a 6 dias por semana, volume controlado, "
++"periodização e monitoramento da recuperação.";
+}
+
+let html=`
+<div class="result">
+<h3 class="gold">${titulo}</h3>
+
+<h3>Dados</h3>
+Peso: ${peso} kg<br>
+Altura: ${altura} cm<br>
+Idade: ${idade} anos<br>
+${cintura? "Cintura: "+cintura+" cm<br>":""}
+
+<h3>Indicadores</h3>
+IMC estimado: ${imc.toFixed(1)}<br>
+<span style="font-size:12px;color:#aaa">
+O IMC é apenas um indicador geral e não diferencia músculo de gordura.
+</span>
+
+<h3>Estimativa energética</h3>
+Metabolismo basal: ${Math.round(tmb)} kcal<br>
+Gasto diário estimado: ${Math.round(gasto)} kcal<br>
+Calorias sugeridas inicialmente: ${Math.round(calorias)} kcal
+
+<h3>Macros sugeridos</h3>
+Proteínas: ${proteina} g<br>
+Gorduras: ${gordura} g<br>
+Carboidratos: ${carbo} g
+
+<h3>Estratégia</h3>
+${recomendacao}
+
+<h3>Treino</h3>
+${treino}
+
+${prioridade?
+"<h3>Prioridades indicadas</h3>"+prioridade:""}
+
+<h3>Alimentação</h3>
+${dieta}
+
+<h3>Orientação</h3>
+Ajuste as estimativas conforme sua evolução,
+fome, desempenho, medidas e orientação profissional.
+</div>
+
+<div class="result">
+<strong class="gold">ANÁLISE VISUAL</strong><br>
+Sua foto foi carregada para visualização. A avaliação
+automática da imagem por inteligência artificial
+ainda depende da conexão com um serviço de IA.
+Os resultados acima foram calculados com base
+nos dados informados, não na fotografia.
+</div>
+`;
+
+document.getElementById("conteudoIA").innerHTML=html;
+document.getElementById("resultadoIA").classList.remove("hidden");
+
+window.scrollTo(0,document.body.scrollHeight);
+}
+
+function salvarAnalise(){
+let conteudo=document.getElementById("conteudoIA").innerHTML;
+if(!conteudo){alert("Gere uma análise primeiro.");return;}
+
+dados.analises.unshift({
+data:new Date().toLocaleDateString("pt-BR"),
+peso:document.getElementById("pesoIA").value,
+objetivo:document.getElementById("objetivoIA").value,
+conteudo:conteudo
+});
+
+salvar();
+renderHistoricoIA();
+alert("Análise salva!");
+}
+
+function renderHistoricoIA(){
+let html="";
+
+if(!dados.analises)dados.analises=[];
+
+dados.analises.forEach((a,i)=>{
+html+=`
+<div class="exercise">
+<strong>${a.data}</strong><br>
+Peso: ${a.peso} kg<br>
+Objetivo: ${a.objetivo}
+<button onclick="verAnalise(${i})"
+style="width:100%;margin-top:10px">Ver análise</button>
+<button class="danger" onclick="excluirAnalise(${i})"
+style="width:100%;margin-top:10px">Excluir</button>
+</div>`;
+});
+
+document.getElementById("historicoIA").innerHTML=
+html||"<p>Nenhuma análise salva.</p>";
+}
+
+function verAnalise(i){
+document.getElementById("resultadoIA").classList.remove("hidden");
+document.getElementById("conteudoIA").innerHTML=
+dados.analises[i].conteudo;
+document.getElementById("resultadoIA")
+.scrollIntoView({behavior:"smooth"});
+}
+
+function excluirAnalise(i){
+if(!confirm("Excluir esta análise?"))return;
+dados.analises.splice(i,1);
+salvar();
+renderHistoricoIA();
+}
+
+/* BACKUP */
+
+function exportarDados(){
+let arquivo=new Blob([JSON.stringify(dados,null,2)],
+{type:"application/json"});
+let url=URL.createObjectURL(arquivo);
+let a=document.createElement("a");
+a.href=url;
+a.download="MZ_Backup.json";
+a.click();
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function importarDados(){
+let arquivo=document.getElementById("arquivoBackup").files[0];
+if(!arquivo){alert("Selecione um backup.");return;}
+let leitor=new FileReader();
+
+leitor.onload=()=>{
+try{
+let novo=JSON.parse(leitor.result);
+if(!novo.treinos||!novo.historico||!novo.medidas){
+throw new Error("Arquivo inválido");
+}
+if(!confirm("Isso substituirá os dados atuais. Continuar?"))return;
+dados=novo;
+if(!dados.analises)dados.analises=[];
+salvar();
+renderTreino();
+alert("Backup restaurado!");
+}catch(e){
+alert("Arquivo de backup inválido.");
+}
+};
+leitor.readAsText(arquivo);
+}
+
+function atualizarInicio(){
+document.getElementById("totalTreinos").textContent=
+dados.historico.length;
+
+document.getElementById("pesoAtual").textContent=
+dados.medidas.length?
+dados.medidas[0].peso+" kg":"--";
+}
+
+atualizarInicio();
+
+document.getElementById("dataMedida").value=
+new Date().toISOString().slice(0,10);
+
+</script>
+</body>
+</html>
