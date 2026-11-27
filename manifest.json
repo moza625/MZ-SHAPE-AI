@@ -7,7 +7,7 @@
   "theme_color": "#d4af37",
   "icons": [
     {
-      "src": "./ativos/MZ-Logo.png"
+      "src": "./assets/MZ-Logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }
